@@ -3,6 +3,8 @@ using febroFlow.Business.Services.Implementations;
 using febroFlow.Core.Responses;
 using febroFlow.Core.Settings;
 using febroFlow.DataAccess.DbContexts;
+using febroFlow.Services;
+using febroFlow.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,9 @@ public static class CoreServiceRegistrations
         // Register OpenAI service
         services.Configure<OpenAISettings>(configuration.GetSection("OpenAI"));
         services.AddScoped<IOpenAIService, OpenAIService>();
+
+        // Register Pinecone service
+        services.AddScoped<IPineconeService, PineconeService>();
 
         // Register Telegram service
         services.Configure<TelegramSettings>(configuration.GetSection("Telegram"));
