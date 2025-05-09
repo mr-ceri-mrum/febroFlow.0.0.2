@@ -12,6 +12,6 @@ public class FlowCreateCommandValidator : AbstractValidator<FlowCreateCommand>
             .MaximumLength(100).WithMessage("Name cannot exceed 100 characters");
             
         RuleFor(x => x.Form.Description)
-            .MaximumLength(500).WithMessage("Description cannot exceed 500 characters");
+            .MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters");
     }
 }

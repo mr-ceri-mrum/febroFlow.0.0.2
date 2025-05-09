@@ -8,16 +8,16 @@ public class ConnectionCreateCommandValidator : AbstractValidator<ConnectionCrea
     public ConnectionCreateCommandValidator()
     {
         RuleFor(x => x.Form.SourceNodeId)
-            .NotEmpty().WithMessage("Source node ID is required");
+            .NotEmpty().WithMessage("Source Node Id is required");
             
         RuleFor(x => x.Form.TargetNodeId)
-            .NotEmpty().WithMessage("Target node ID is required")
-            .NotEqual(x => x.Form.SourceNodeId).WithMessage("Source and target nodes must be different");
+            .NotEmpty().WithMessage("Target Node Id is required")
+            .NotEqual(x => x.Form.SourceNodeId).WithMessage("Source and target nodes cannot be the same");
             
         RuleFor(x => x.Form.Type)
             .IsInEnum().WithMessage("Invalid connection type");
             
         RuleFor(x => x.Form.FlowId)
-            .NotEmpty().WithMessage("Flow ID is required");
+            .NotEmpty().WithMessage("Flow Id is required");
     }
 }

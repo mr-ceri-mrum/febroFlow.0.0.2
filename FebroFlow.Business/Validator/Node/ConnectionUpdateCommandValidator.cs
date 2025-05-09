@@ -8,14 +8,14 @@ public class ConnectionUpdateCommandValidator : AbstractValidator<ConnectionUpda
     public ConnectionUpdateCommandValidator()
     {
         RuleFor(x => x.Form.Id)
-            .NotEmpty().WithMessage("Connection ID is required");
+            .NotEmpty().WithMessage("Id is required");
             
         RuleFor(x => x.Form.SourceNodeId)
-            .NotEmpty().WithMessage("Source node ID is required");
+            .NotEmpty().WithMessage("Source Node Id is required");
             
         RuleFor(x => x.Form.TargetNodeId)
-            .NotEmpty().WithMessage("Target node ID is required")
-            .NotEqual(x => x.Form.SourceNodeId).WithMessage("Source and target nodes must be different");
+            .NotEmpty().WithMessage("Target Node Id is required")
+            .NotEqual(x => x.Form.SourceNodeId).WithMessage("Source and target nodes cannot be the same");
             
         RuleFor(x => x.Form.Type)
             .IsInEnum().WithMessage("Invalid connection type");
