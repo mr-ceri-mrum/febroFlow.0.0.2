@@ -1,3 +1,5 @@
+using FebroFlow.Data.Dtos.Node;
+
 namespace FebroFlow.Data.Dtos.Flow;
 
 public class FlowDto

@@ -1,8 +1,8 @@
-using FebroFlow.Data.Entities;
 using FebroFlow.Data.Enums;
 using FebroFlow.DataAccess.DataAccess;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using FebroFlow.DataAccess.DbModels;
 
 namespace FebroFlow.Business.Services.Implementations;
 
@@ -14,7 +14,7 @@ public class ExecutionStateManager : IExecutionStateManager
     private readonly IExecutionStateDal _executionStateDal;
     private readonly IFlowDal _flowDal;
     private readonly ILogger<ExecutionStateManager> _logger;
-
+    
     public ExecutionStateManager(
         IExecutionStateDal executionStateDal,
         IFlowDal flowDal,

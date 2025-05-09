@@ -1,4 +1,4 @@
-using FebroFlow.Data.Entities;
+using FebroFlow.DataAccess.DbModels;
 
 namespace FebroFlow.Business.Services;
 
