@@ -20,6 +20,9 @@ public static class DalServiceRegistrations
         // Register Connection DAL
         services.AddScoped<IConnectionDal, ConnectionDal>();
         
+        // Register ExecutionState DAL
+        services.AddScoped<IExecutionStateDal, ExecutionStateDal>();
+        
         // Register NodeType DAL
         services.AddScoped<INodeTypeDal, NodeTypeDal>();
         
