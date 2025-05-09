@@ -1,194 +1,73 @@
-using FebroFlow.Core.ResultResponses;
-using FebroFlow.Business.ServiceRegistrations;
-using Microsoft.Extensions.Options;
-using System.Text.Json;
-using System.Text;
-
 namespace FebroFlow.Business.Services;
 
+/// <summary>
+/// Интерфейс для взаимодействия с векторной базой данных Pinecone
+/// </summary>
 public interface IPineconeService
 {
     /// <summary>
-    /// Creates a new index in Pinecone
+    /// Добавление вектора в базу данных
     /// </summary>
-    Task<IDataResult<bool>> CreateIndexAsync(string indexName, int dimension = 1536);
+    /// <param name="id">Идентификатор вектора</param>
+    /// <param name="vector">Вектор</param>
+    /// <param name="metadata">Метаданные</param>
+    /// <param name="nameSpace">Namespace для вектора</param>
+    /// <returns>Результат операции</returns>
+    Task<bool> UpsertVectorAsync(string id, float[] vector, Dictionary<string, object> metadata, string nameSpace = "");
     
     /// <summary>
-    /// Deletes an index from Pinecone
+    /// Добавление векторов в базу данных пакетно
     /// </summary>
-    Task<IDataResult<bool>> DeleteIndexAsync(string indexName);
+    /// <param name="vectors">Словарь векторов: ключ - id, значение - массив координат</param>
+    /// <param name="metadata">Словарь метаданных для каждого вектора</param>
+    /// <param name="nameSpace">Namespace для векторов</param>
+    /// <returns>Результат операции</returns>
+    Task<bool> UpsertVectorsAsync(Dictionary<string, float[]> vectors, Dictionary<string, Dictionary<string, object>> metadata, string nameSpace = "");
     
     /// <summary>
-    /// Upserts vectors into a Pinecone index
+    /// Поиск ближайших векторов
     /// </summary>
-    Task<IDataResult<bool>> UpsertVectorsAsync(string indexName, Dictionary<string, float[]> vectors, Dictionary<string, object>? metadata = null);
+    /// <param name="vector">Вектор для поиска</param>
+    /// <param name="topK">Количество ближайших векторов для возврата</param>
+    /// <param name="nameSpace">Namespace для поиска</param>
+    /// <param name="filter">Фильтр для поиска</param>
+    /// <returns>Результаты поиска с метаданными</returns>
+    Task<List<PineconeSearchResult>> QueryAsync(float[] vector, int topK = 10, string nameSpace = "", Dictionary<string, object> filter = null);
     
     /// <summary>
-    /// Queries vectors from a Pinecone index
+    /// Удаление вектора из базы данных
     /// </summary>
-    Task<IDataResult<List<(string Id, float Score, Dictionary<string, object> Metadata)>>> QueryVectorsAsync(
-        string indexName, float[] queryVector, int topK = 5);
+    /// <param name="id">Идентификатор вектора</param>
+    /// <param name="nameSpace">Namespace вектора</param>
+    /// <returns>Результат операции</returns>
+    Task<bool> DeleteVectorAsync(string id, string nameSpace = "");
+    
+    /// <summary>
+    /// Удаление множества векторов с фильтрацией
+    /// </summary>
+    /// <param name="filter">Фильтр для удаления</param>
+    /// <param name="nameSpace">Namespace для удаления</param>
+    /// <returns>Результат операции</returns>
+    Task<bool> DeleteVectorsAsync(Dictionary<string, object> filter, string nameSpace = "");
 }
 
-public class PineconeService : IPineconeService
+/// <summary>
+/// Класс для результатов поиска в Pinecone
+/// </summary>
+public class PineconeSearchResult
 {
-    private readonly HttpClient _httpClient;
-    private readonly string _apiKey;
-    private readonly string _environment;
-    private readonly string _projectId;
+    /// <summary>
+    /// Идентификатор вектора
+    /// </summary>
+    public string Id { get; set; }
     
-    public PineconeService(HttpClient httpClient, IOptions<IntegrationServiceRegistrations.PineconeOptions> options)
-    {
-        _httpClient = httpClient;
-        _apiKey = options.Value.ApiKey;
-        _environment = options.Value.Environment;
-        _projectId = options.Value.ProjectId;
-        
-        // Set default headers for API requests
-        _httpClient.DefaultRequestHeaders.Add("Api-Key", _apiKey);
-    }
-
-    public async Task<IDataResult<bool>> CreateIndexAsync(string indexName, int dimension = 1536)
-    {
-        try
-        {
-            string apiUrl = $"https://controller.{_environment}.pinecone.io/databases";
-            
-            var requestBody = new
-            {
-                name = indexName,
-                dimension = dimension,
-                metric = "cosine"
-            };
-            
-            var jsonContent = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync(apiUrl, content);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                return new SuccessDataResult<bool>(true, "Index created successfully");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync();
-            return new ErrorDataResult<bool>(errorContent, System.Net.HttpStatusCode.BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<bool>(ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
-
-    public async Task<IDataResult<bool>> DeleteIndexAsync(string indexName)
-    {
-        try
-        {
-            string apiUrl = $"https://controller.{_environment}.pinecone.io/databases/{indexName}";
-            
-            var response = await _httpClient.DeleteAsync(apiUrl);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                return new SuccessDataResult<bool>(true, "Index deleted successfully");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync();
-            return new ErrorDataResult<bool>(errorContent, System.Net.HttpStatusCode.BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<bool>(ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
-
-    public async Task<IDataResult<bool>> UpsertVectorsAsync(string indexName, Dictionary<string, float[]> vectors, Dictionary<string, object>? metadata = null)
-    {
-        try
-        {
-            string apiUrl = $"https://{indexName}-{_projectId}.svc.{_environment}.pinecone.io/vectors/upsert";
-            
-            // Format vectors for Pinecone API
-            var vectorRecords = new List<object>();
-            
-            foreach (var (id, vector) in vectors)
-            {
-                var record = new
-                {
-                    id = id,
-                    values = vector,
-                    metadata = metadata != null && metadata.ContainsKey(id) ? metadata[id] : null
-                };
-                
-                vectorRecords.Add(record);
-            }
-            
-            var requestBody = new
-            {
-                vectors = vectorRecords
-            };
-            
-            var jsonContent = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync(apiUrl, content);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                return new SuccessDataResult<bool>(true, "Vectors upserted successfully");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync();
-            return new ErrorDataResult<bool>(errorContent, System.Net.HttpStatusCode.BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<bool>(ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
-
-    public async Task<IDataResult<List<(string Id, float Score, Dictionary<string, object> Metadata)>>> QueryVectorsAsync(string indexName, float[] queryVector, int topK = 5)
-    {
-        try
-        {
-            string apiUrl = $"https://{indexName}-{_projectId}.svc.{_environment}.pinecone.io/query";
-            
-            var requestBody = new
-            {
-                vector = queryVector,
-                topK = topK,
-                includeMetadata = true
-            };
-            
-            var jsonContent = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync(apiUrl, content);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                
-                // This is a simplified extraction - in a real implementation,
-                // properly parse the JSON and extract the matches
-                var results = new List<(string Id, float Score, Dictionary<string, object> Metadata)>
-                {
-                    ("sample-id-1", 0.95f, new Dictionary<string, object> { { "text", "Sample text 1" } }),
-                    ("sample-id-2", 0.85f, new Dictionary<string, object> { { "text", "Sample text 2" } })
-                };
-                
-                return new SuccessDataResult<List<(string Id, float Score, Dictionary<string, object> Metadata)>>(
-                    results, "Query executed successfully");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync();
-            return new ErrorDataResult<List<(string Id, float Score, Dictionary<string, object> Metadata)>>(
-                errorContent, System.Net.HttpStatusCode.BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<List<(string Id, float Score, Dictionary<string, object> Metadata)>>(
-                ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
+    /// <summary>
+    /// Значение сходства (от 0 до 1)
+    /// </summary>
+    public float Score { get; set; }
+    
+    /// <summary>
+    /// Метаданные вектора
+    /// </summary>
+    public Dictionary<string, object> Metadata { get; set; }
 }
