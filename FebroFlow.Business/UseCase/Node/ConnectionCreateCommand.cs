@@ -56,21 +56,10 @@ public class ConnectionCreateCommandHandler : IRequestHandler<ConnectionCreateCo
             request.Form.SourceNodeId,
             request.Form.TargetNodeId,
             request.Form.Type);
-            
-        if (!validationResult.Result)
-        {
-            return validationResult;
-        }
         
-        // Check if connection already exists
-        var existingConnection = await _connectionDal.GetAsync(x => 
-            x.SourceNodeId == request.Form.SourceNodeId && 
-            x.TargetNodeId == request.Form.TargetNodeId &&
-            x.Type == request.Form.Type);
-            
-        if (existingConnection != null)
+        if (!validationResult.Result || validationResult.Data == false)
         {
-            return new ErrorDataResult<object>("Connection already exists", HttpStatusCode.BadRequest);
+            return new ErrorDataResult<object>(validationResult.Message, HttpStatusCode.BadRequest);
         }
         
         // Map DTO to entity
