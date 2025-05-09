@@ -1,139 +1,59 @@
-using FebroFlow.Core.ResultResponses;
-using FebroFlow.Business.ServiceRegistrations;
-using Microsoft.Extensions.Options;
-using System.Text.Json;
+using FebroFlow.Data.Dtos.Telegram;
+using FebroFlow.Data.Entities;
 
 namespace FebroFlow.Business.Services;
 
+/// <summary>
+/// Интерфейс для взаимодействия с API Telegram
+/// </summary>
 public interface ITelegramService
 {
     /// <summary>
-    /// Sets up a webhook for receiving Telegram updates
+    /// Отправка сообщения пользователю
     /// </summary>
-    Task<IDataResult<bool>> SetWebhookAsync(string url);
+    /// <param name="chatId">ID чата</param>
+    /// <param name="text">Текст сообщения</param>
+    /// <param name="parseMode">Режим парсинга (Markdown, HTML)</param>
+    /// <param name="replyMarkup">Разметка для ответа (кнопки и т.д.)</param>
+    /// <returns>Информация об отправленном сообщении</returns>
+    Task<TelegramMessageResponse> SendMessageAsync(long chatId, string text, string parseMode = null, object replyMarkup = null);
     
     /// <summary>
-    /// Removes the webhook
+    /// Отправка изображения пользователю
     /// </summary>
-    Task<IDataResult<bool>> DeleteWebhookAsync();
+    /// <param name="chatId">ID чата</param>
+    /// <param name="photoUrl">URL изображения или ID файла</param>
+    /// <param name="caption">Подпись к изображению</param>
+    /// <param name="parseMode">Режим парсинга (Markdown, HTML)</param>
+    /// <param name="replyMarkup">Разметка для ответа (кнопки и т.д.)</param>
+    /// <returns>Информация об отправленном сообщении</returns>
+    Task<TelegramMessageResponse> SendPhotoAsync(long chatId, string photoUrl, string caption = null, string parseMode = null, object replyMarkup = null);
     
     /// <summary>
-    /// Sends a text message to a Telegram chat
+    /// Установка webhook для получения обновлений
     /// </summary>
-    Task<IDataResult<object>> SendMessageAsync(string chatId, string text, int? replyToMessageId = null);
+    /// <param name="url">URL для получения обновлений</param>
+    /// <param name="certificate">Публичный ключ сертификата</param>
+    /// <param name="allowedUpdates">Типы разрешенных обновлений</param>
+    /// <returns>Результат операции</returns>
+    Task<bool> SetWebhookAsync(string url, byte[] certificate = null, string[] allowedUpdates = null);
     
     /// <summary>
-    /// Processes an incoming webhook update from Telegram
+    /// Удаление webhook
     /// </summary>
-    Task<IDataResult<object>> ProcessUpdateAsync(string updateJson);
-}
-
-public class TelegramService : ITelegramService
-{
-    private readonly HttpClient _httpClient;
-    private readonly string _botToken;
-    private readonly string _webhookUrl;
+    /// <returns>Результат операции</returns>
+    Task<bool> DeleteWebhookAsync();
     
-    public TelegramService(HttpClient httpClient, IOptions<IntegrationServiceRegistrations.TelegramOptions> options)
-    {
-        _httpClient = httpClient;
-        _botToken = options.Value.BotToken;
-        _webhookUrl = options.Value.WebhookUrl;
-    }
-
-    public async Task<IDataResult<bool>> SetWebhookAsync(string url)
-    {
-        try
-        {
-            string apiUrl = $"https://api.telegram.org/bot{_botToken}/setWebhook?url={url}";
-            var response = await _httpClient.GetAsync(apiUrl);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                return new SuccessDataResult<bool>(true, "Webhook set successfully");
-            }
-            
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return new ErrorDataResult<bool>(responseContent, System.Net.HttpStatusCode.BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<bool>(ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
-
-    public async Task<IDataResult<bool>> DeleteWebhookAsync()
-    {
-        try
-        {
-            string apiUrl = $"https://api.telegram.org/bot{_botToken}/deleteWebhook";
-            var response = await _httpClient.GetAsync(apiUrl);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                return new SuccessDataResult<bool>(true, "Webhook deleted successfully");
-            }
-            
-            var responseContent = await response.Content.ReadAsStringAsync();
-            return new ErrorDataResult<bool>(responseContent, System.Net.HttpStatusCode.BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<bool>(ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
-
-    public async Task<IDataResult<object>> SendMessageAsync(string chatId, string text, int? replyToMessageId = null)
-    {
-        try
-        {
-            string apiUrl = $"https://api.telegram.org/bot{_botToken}/sendMessage";
-            
-            var content = new Dictionary<string, string>
-            {
-                { "chat_id", chatId },
-                { "text", text },
-                { "parse_mode", "Markdown" },
-            };
-            
-            if (replyToMessageId.HasValue)
-            {
-                content.Add("reply_to_message_id", replyToMessageId.Value.ToString());
-            }
-            
-            var response = await _httpClient.PostAsync(apiUrl, new FormUrlEncodedContent(content));
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var responseObj = JsonSerializer.Deserialize<object>(responseContent);
-                return new SuccessDataResult<object>(responseObj!, "Message sent successfully");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync();
-            return new ErrorDataResult<object>(errorContent, System.Net.HttpStatusCode.BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<object>(ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
-
-    public async Task<IDataResult<object>> ProcessUpdateAsync(string updateJson)
-    {
-        try
-        {
-            // Parse update
-            var update = JsonSerializer.Deserialize<object>(updateJson);
-            
-            // Simplified implementation - in reality you would parse the update,
-            // extract the message, analyze content, etc.
-            
-            return new SuccessDataResult<object>(update!, "Update processed successfully");
-        }
-        catch (Exception ex)
-        {
-            return new ErrorDataResult<object>(ex.Message, System.Net.HttpStatusCode.InternalServerError);
-        }
-    }
+    /// <summary>
+    /// Обработка входящего обновления от Telegram
+    /// </summary>
+    /// <param name="update">Обновление</param>
+    /// <returns>Результат обработки</returns>
+    Task<TelegramProcessingResult> ProcessUpdateAsync(TelegramUpdate update);
+    
+    /// <summary>
+    /// Получение информации о боте
+    /// </summary>
+    /// <returns>Информация о боте</returns>
+    Task<TelegramUser> GetMeAsync();
 }
