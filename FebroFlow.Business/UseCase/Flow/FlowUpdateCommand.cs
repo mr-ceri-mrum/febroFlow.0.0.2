@@ -1,57 +1,93 @@
+using System.Net;
 using AutoMapper;
 using FebroFlow.Business.Services;
+using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
-using System.Net;
 
 namespace FebroFlow.Business.UseCase.Flow;
 
+/// <summary>
+/// Команда для обновления потока
+/// </summary>
 public class FlowUpdateCommand : IRequest<IDataResult<object>>
 {
-    public FlowUpdateDto Form { get; }
+    /// <summary>
+    /// DTO с данными для обновления
+    /// </summary>
+    public FlowUpdateDto FlowDto { get; }
 
-    public FlowUpdateCommand(FlowUpdateDto form)
+    public FlowUpdateCommand(FlowUpdateDto flowDto)
     {
-        Form = form;
+        FlowDto = flowDto;
     }
 }
 
+/// <summary>
+/// Обработчик команды обновления потока
+/// </summary>
 public class FlowUpdateCommandHandler : IRequestHandler<FlowUpdateCommand, IDataResult<object>>
 {
     private readonly IFlowDal _flowDal;
-    private readonly IMapper _mapper;
+    private readonly IAuthInformationRepository _authInformationRepository;
     private readonly IMessagesRepository _messagesRepository;
-    
-    public FlowUpdateCommandHandler(IFlowDal flowDal, IMapper mapper, IMessagesRepository messagesRepository)
+    private readonly IMapper _mapper;
+
+    public FlowUpdateCommandHandler(
+        IFlowDal flowDal,
+        IAuthInformationRepository authInformationRepository,
+        IMessagesRepository messagesRepository,
+        IMapper mapper)
     {
         _flowDal = flowDal;
-        _mapper = mapper;
+        _authInformationRepository = authInformationRepository;
         _messagesRepository = messagesRepository;
+        _mapper = mapper;
     }
-    
+
     public async Task<IDataResult<object>> Handle(FlowUpdateCommand request, CancellationToken cancellationToken)
     {
-        // Check if flow exists
-        var flow = await _flowDal.GetAsync(x => x.Id == request.Form.Id);
-        
-        if (flow == null)
+        try
         {
-            return new ErrorDataResult<object>(_messagesRepository.NotFound("Flow"), HttpStatusCode.NotFound);
+            var userId = _authInformationRepository.GetUserId();
+            
+            if (userId == Guid.Empty)
+            {
+                return new ErrorDataResult<object>(_messagesRepository.AccessDenied("User"), HttpStatusCode.Forbidden);
+            }
+            
+            var flow = await _flowDal.GetAsync(f => f.Id == request.FlowDto.Id);
+            
+            if (flow == null)
+            {
+                return new ErrorDataResult<object>(_messagesRepository.NotFound(), HttpStatusCode.NotFound);
+            }
+            
+            if (flow.UserId != userId)
+            {
+                return new ErrorDataResult<object>(_messagesRepository.AccessDenied("Flow"), HttpStatusCode.Forbidden);
+            }
+            
+            // Обновляем только разрешенные поля
+            flow.Name = request.FlowDto.Name;
+            flow.Description = request.FlowDto.Description;
+            flow.IsPublic = request.FlowDto.IsPublic;
+            flow.Tags = request.FlowDto.Tags;
+            flow.UpdatedAt = DateTime.UtcNow;
+            
+            // Сохраняем изменения
+            await _flowDal.UpdateAsync(flow);
+            
+            // Маппим обратно на DTO
+            var flowDto = _mapper.Map<FlowDto>(flow);
+            
+            return new SuccessDataResult<object>(flowDto, _messagesRepository.Edited("Flow"));
         }
-        
-        // Update properties
-        flow.Name = request.Form.Name;
-        flow.Description = request.Form.Description;
-        flow.IsActive = request.Form.IsActive;
-        flow.Tags = request.Form.Tags;
-        flow.Settings = request.Form.Settings;
-        flow.ModifiedDate = DateTime.Now;
-        
-        // Save changes
-        await _flowDal.UpdateAsync(flow);
-        
-        return new SuccessDataResult<object>(flow, _messagesRepository.Edited("Flow"));
+        catch (Exception ex)
+        {
+            return new ErrorDataResult<object>(ex.Message, HttpStatusCode.InternalServerError);
+        }
     }
 }
