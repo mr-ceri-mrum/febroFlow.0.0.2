@@ -1,6 +1,7 @@
 using FebroFlow.Business.Services;
 using FebroFlow.Core.ResultResponses;
 using MediatR;
+using System.Net;
 
 namespace FebroFlow.Business.UseCase.Webhook;
 
@@ -25,7 +26,14 @@ public class TelegramSetWebhookCommandHandler : IRequestHandler<TelegramSetWebho
     
     public async Task<IDataResult<object>> Handle(TelegramSetWebhookCommand request, CancellationToken cancellationToken)
     {
-        var result = await _telegramService.SetWebhookAsync(request.Url);
-        return result;
+        try
+        {
+            var result = await _telegramService.SetWebhookAsync(request.Url);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            return new ErrorDataResult<object>(ex.Message, HttpStatusCode.InternalServerError);
+        }
     }
 }
