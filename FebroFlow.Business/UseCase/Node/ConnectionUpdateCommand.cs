@@ -47,15 +47,20 @@ public class ConnectionUpdateCommandHandler : IRequestHandler<ConnectionUpdateCo
             return new ErrorDataResult<object>(_messagesRepository.NotFound("Connection"), HttpStatusCode.NotFound);
         }
         
-        // Validate connection
-        var validationResult = await _connectionManager.ValidateConnectionAsync(
-            request.Form.SourceNodeId,
-            request.Form.TargetNodeId,
-            request.Form.Type);
-            
-        if (!validationResult.Result)
+        // If source or target node has changed, validate the new connection
+        if (connection.SourceNodeId != request.Form.SourceNodeId || 
+            connection.TargetNodeId != request.Form.TargetNodeId ||
+            connection.Type != request.Form.Type)
         {
-            return validationResult;
+            var validationResult = await _connectionManager.ValidateConnectionAsync(
+                request.Form.SourceNodeId,
+                request.Form.TargetNodeId,
+                request.Form.Type);
+            
+            if (!validationResult.Result || validationResult.Data == false)
+            {
+                return new ErrorDataResult<object>(validationResult.Message, HttpStatusCode.BadRequest);
+            }
         }
         
         // Update properties
