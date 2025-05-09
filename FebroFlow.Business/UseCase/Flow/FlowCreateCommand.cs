@@ -1,47 +1,76 @@
+using System.Net;
 using AutoMapper;
 using FebroFlow.Business.Services;
+using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
+using FebroFlow.Data.Entities;
 using FebroFlow.DataAccess.DataAccess;
-using FebroFlow.DataAccess.DbModels;
 using MediatR;
 
 namespace FebroFlow.Business.UseCase.Flow;
 
+/// <summary>
+/// Команда для создания нового потока
+/// </summary>
 public class FlowCreateCommand : IRequest<IDataResult<object>>
 {
-    public FlowCreateDto Form { get; }
+    /// <summary>
+    /// DTO для создания потока
+    /// </summary>
+    public FlowCreateDto FlowDto { get; }
 
-    public FlowCreateCommand(FlowCreateDto form)
+    public FlowCreateCommand(FlowCreateDto flowDto)
     {
-        Form = form;
+        FlowDto = flowDto;
     }
 }
 
+/// <summary>
+/// Обработчик команды создания потока
+/// </summary>
 public class FlowCreateCommandHandler : IRequestHandler<FlowCreateCommand, IDataResult<object>>
 {
     private readonly IFlowDal _flowDal;
-    private readonly IMapper _mapper;
+    private readonly IAuthInformationRepository _authInformationRepository;
     private readonly IMessagesRepository _messagesRepository;
-    
-    public FlowCreateCommandHandler(IFlowDal flowDal, IMapper mapper, IMessagesRepository messagesRepository)
+    private readonly IMapper _mapper;
+
+    public FlowCreateCommandHandler(
+        IFlowDal flowDal,
+        IAuthInformationRepository authInformationRepository,
+        IMessagesRepository messagesRepository,
+        IMapper mapper)
     {
         _flowDal = flowDal;
-        _mapper = mapper;
+        _authInformationRepository = authInformationRepository;
         _messagesRepository = messagesRepository;
+        _mapper = mapper;
     }
-    
+
     public async Task<IDataResult<object>> Handle(FlowCreateCommand request, CancellationToken cancellationToken)
     {
-        // Map DTO to entity
-        var flow = _mapper.Map<DataAccess.DbModels.Flow>(request.Form);
-        
-        // Set creation data
-        flow.DataCreate = DateTime.Now;
-        
-        // Save to database
-        await _flowDal.AddAsync(flow);
-        
-        return new SuccessDataResult<object>(flow, _messagesRepository.Created("Flow"));
+        try
+        {
+            var userId = _authInformationRepository.GetUserId();
+            
+            if (userId == Guid.Empty)
+            {
+                return new ErrorDataResult<object>(_messagesRepository.AccessDenied("User"), HttpStatusCode.Forbidden);
+            }
+            
+            var flow = _mapper.Map<Flow>(request.FlowDto);
+            flow.UserId = userId;
+            flow.CreatedAt = DateTime.UtcNow;
+            flow.UpdatedAt = DateTime.UtcNow;
+            
+            await _flowDal.AddAsync(flow);
+            
+            return new SuccessDataResult<object>(flow, _messagesRepository.Created("Flow"));
+        }
+        catch (Exception ex)
+        {
+            return new ErrorDataResult<object>(ex.Message, HttpStatusCode.InternalServerError);
+        }
     }
 }
