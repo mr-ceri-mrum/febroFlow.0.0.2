@@ -6,7 +6,7 @@ namespace FebroFlow.Business.Services;
 public interface IAuthInformationRepository
 {
     IdentityAuthModel? GetUser();
-    IdentityAuthModel? GetUserId();
+    Guid? GetUserId();
 }
 public class AuthInformationRepository(IHttpContextAccessor httpContextAccessor) : IAuthInformationRepository
 {
@@ -28,7 +28,7 @@ public class AuthInformationRepository(IHttpContextAccessor httpContextAccessor)
         };
     }
 
-    public IdentityAuthModel? GetUserId()
+    public Guid? GetUserId()
     {
         var context = httpContextAccessor.HttpContext?.User;
         var identities = context?.Identities.FirstOrDefault();
@@ -38,12 +38,10 @@ public class AuthInformationRepository(IHttpContextAccessor httpContextAccessor)
         var claims = identities.Claims.ToList();
         if (!claims.Any())
             return null;
+        var id = Guid.Parse(claims.FirstOrDefault(i => i.Type == ClaimTypes.NameIdentifier)?.Value!);
 
-        return new IdentityAuthModel()
-        {
-            Id = Guid.Parse(claims.FirstOrDefault(i => i.Type == ClaimTypes.NameIdentifier)?.Value!),
-            UserName = claims.FirstOrDefault(i => i.Type == ClaimTypes.Email)?.Value ?? "",
-        };
+        return id;
+
     }
 }
 

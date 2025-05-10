@@ -6,6 +6,8 @@ using FebroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DbModels;
 using MediatR;
 using System.Net;
+using FebroFlow.Core.Responses;
+using febroFlow.DataAccess.DataAccess;
 
 namespace FebroFlow.Business.UseCase.Node;
 
@@ -49,7 +51,7 @@ public class NodeCreateCommandHandler : IRequestHandler<NodeCreateCommand, IData
         }
         
         // Map DTO to entity
-        var node = _mapper.Map<Node>(request.Form);
+        var node = _mapper.Map<DataAccess.DbModels.Node>(request.Form);
         
         // Set creation data
         node.DataCreate = DateTime.Now;

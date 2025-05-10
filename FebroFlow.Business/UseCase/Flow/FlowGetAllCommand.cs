@@ -5,6 +5,7 @@ using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
 using FebroFlow.Data.Dtos.Paginate;
+using febroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 
@@ -65,8 +66,8 @@ public class FlowGetAllCommandHandler : IRequestHandler<FlowGetAllCommand, IData
             
             // Получаем потоки в зависимости от параметров
             var flows = request.OnlyPublic
-                ? await _flowDal.GetAllAsync(f => f.IsPublic) // Только публичные
-                : await _flowDal.GetAllAsync(f => f.UserId == userId || f.IsPublic); // Свои и публичные
+                ? await _flowDal.GetAllAsync(f => f.IsActive) // Только публичные
+                : await _flowDal.GetAllAsync(f => f.CreatorId == userId || f.IsActive); // Свои и публичные
             
             // Применяем пагинацию
             var pagedFlows = flows

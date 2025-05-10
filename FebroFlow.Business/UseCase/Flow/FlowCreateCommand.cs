@@ -5,6 +5,7 @@ using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
 using FebroFlow.Data.Entities;
+using febroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 
@@ -35,7 +36,7 @@ public class FlowCreateCommandHandler : IRequestHandler<FlowCreateCommand, IData
     private readonly IAuthInformationRepository _authInformationRepository;
     private readonly IMessagesRepository _messagesRepository;
     private readonly IMapper _mapper;
-
+    
     public FlowCreateCommandHandler(
         IFlowDal flowDal,
         IAuthInformationRepository authInformationRepository,
@@ -59,10 +60,8 @@ public class FlowCreateCommandHandler : IRequestHandler<FlowCreateCommand, IData
                 return new ErrorDataResult<object>(_messagesRepository.AccessDenied("User"), HttpStatusCode.Forbidden);
             }
             
-            var flow = _mapper.Map<Flow>(request.FlowDto);
-            flow.UserId = userId;
-            flow.CreatedAt = DateTime.UtcNow;
-            flow.UpdatedAt = DateTime.UtcNow;
+            var flow = _mapper.Map<DataAccess.DbModels.Flow>(request.FlowDto);
+            flow.CreatorId = userId.Id;
             
             await _flowDal.AddAsync(flow);
             

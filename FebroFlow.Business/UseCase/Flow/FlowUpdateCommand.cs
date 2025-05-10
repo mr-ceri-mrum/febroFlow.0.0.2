@@ -4,6 +4,7 @@ using FebroFlow.Business.Services;
 using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
+using febroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 
@@ -65,7 +66,7 @@ public class FlowUpdateCommandHandler : IRequestHandler<FlowUpdateCommand, IData
                 return new ErrorDataResult<object>(_messagesRepository.NotFound(), HttpStatusCode.NotFound);
             }
             
-            if (flow.UserId != userId)
+            if (flow.CreatorId != userId)
             {
                 return new ErrorDataResult<object>(_messagesRepository.AccessDenied("Flow"), HttpStatusCode.Forbidden);
             }
@@ -73,9 +74,9 @@ public class FlowUpdateCommandHandler : IRequestHandler<FlowUpdateCommand, IData
             // Обновляем только разрешенные поля
             flow.Name = request.FlowDto.Name;
             flow.Description = request.FlowDto.Description;
-            flow.IsPublic = request.FlowDto.IsPublic;
+            flow.IsActive = request.FlowDto.IsActive;
             flow.Tags = request.FlowDto.Tags;
-            flow.UpdatedAt = DateTime.UtcNow;
+            flow.ModifiedDate = DateTime.UtcNow;
             
             // Сохраняем изменения
             await _flowDal.UpdateAsync(flow);

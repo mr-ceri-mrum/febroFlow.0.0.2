@@ -5,6 +5,8 @@ using FebroFlow.Data.Dtos.Node;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 using System.Net;
+using FebroFlow.Core.Responses;
+using febroFlow.DataAccess.DataAccess;
 
 namespace FebroFlow.Business.UseCase.Node;
 
@@ -54,12 +56,11 @@ public class ConnectionUpdateCommandHandler : IRequestHandler<ConnectionUpdateCo
         {
             var validationResult = await _connectionManager.ValidateConnectionAsync(
                 request.Form.SourceNodeId,
-                request.Form.TargetNodeId,
-                request.Form.Type);
+                request.Form.TargetNodeId);
             
-            if (!validationResult.Result || validationResult.Data == false)
+            if (validationResult is false)
             {
-                return new ErrorDataResult<object>(validationResult.Message, HttpStatusCode.BadRequest);
+                return new ErrorDataResult<object>(validationResult, HttpStatusCode.BadRequest);
             }
         }
         

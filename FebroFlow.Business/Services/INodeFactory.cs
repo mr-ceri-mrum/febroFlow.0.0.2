@@ -1,5 +1,6 @@
 using FebroFlow.Data.Dtos.Node;
 using FebroFlow.Data.Entities;
+using FebroFlow.DataAccess.DbModels;
 
 namespace FebroFlow.Business.Services;
 

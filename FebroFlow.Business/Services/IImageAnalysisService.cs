@@ -129,8 +129,8 @@ public class AzureImageAnalysisService : IImageAnalysisService
     {
         try
         {
-            string apiKey = _configuration["AzureComputerVision:ApiKey"];
-            string endpoint = _configuration["AzureComputerVision:Endpoint"];
+            string? apiKey = _configuration["AzureComputerVision:ApiKey"];
+            string? endpoint = _configuration["AzureComputerVision:Endpoint"];
 
             if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(endpoint))
             {

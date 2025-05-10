@@ -4,6 +4,8 @@ using FebroFlow.Business.Services;
 using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
+using FebroFlow.Data.Dtos.Node;
+using febroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -81,7 +83,7 @@ public class FlowGetCommandHandler : IRequestHandler<FlowGetCommand, IDataResult
             }
             
             // Проверяем права доступа
-            if (flow.UserId != userId && !flow.IsPublic)
+            if (flow.CreatorId != userId && !flow.IsActive)
             {
                 return new ErrorDataResult<object>(_messagesRepository.AccessDenied("Flow"), HttpStatusCode.Forbidden);
             }

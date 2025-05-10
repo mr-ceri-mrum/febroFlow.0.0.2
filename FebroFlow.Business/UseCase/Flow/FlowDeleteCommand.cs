@@ -2,6 +2,7 @@ using System.Net;
 using FebroFlow.Business.Services;
 using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
+using febroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 
@@ -66,7 +67,7 @@ public class FlowDeleteCommandHandler : IRequestHandler<FlowDeleteCommand, IData
                 return new ErrorDataResult<object>(_messagesRepository.NotFound(), HttpStatusCode.NotFound);
             }
             
-            if (flow.UserId != userId)
+            if (flow.CreatorId != userId)
             {
                 return new ErrorDataResult<object>(_messagesRepository.AccessDenied("Flow"), HttpStatusCode.Forbidden);
             }

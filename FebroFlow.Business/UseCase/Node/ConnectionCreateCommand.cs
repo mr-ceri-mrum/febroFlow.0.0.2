@@ -4,6 +4,7 @@ using FebroFlow.Business.Services;
 using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Node;
+using febroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 
@@ -73,7 +74,7 @@ public class ConnectionCreateCommandHandler : IRequestHandler<ConnectionCreateCo
             }
             
             // Проверяем права доступа к потоку
-            if (flow.UserId != userId)
+            if (flow.CreatorId != userId)
             {
                 return new ErrorDataResult<object>(_messagesRepository.AccessDenied("Flow"), HttpStatusCode.Forbidden);
             }

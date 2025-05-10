@@ -4,6 +4,7 @@ using FebroFlow.Core.Responses;
 using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
 using FebroFlow.Data.Enums;
+using febroFlow.DataAccess.DataAccess;
 using FebroFlow.DataAccess.DataAccess;
 using MediatR;
 
@@ -78,7 +79,7 @@ public class FlowExecuteCommandHandler : IRequestHandler<FlowExecuteCommand, IDa
             }
             
             // Проверяем права доступа к потоку
-            if (flow.UserId != userId && !flow.IsPublic)
+            if (flow.CreatorId != userId && !flow.IsActive)
             {
                 return new ErrorDataResult<object>(_messagesRepository.AccessDenied("Flow"), HttpStatusCode.Forbidden);
             }
@@ -86,7 +87,7 @@ public class FlowExecuteCommandHandler : IRequestHandler<FlowExecuteCommand, IDa
             // Получаем узлы потока
             var nodes = await _nodeDal.GetAllAsync(n => n.FlowId == request.FlowId);
             
-            if (nodes == null || !nodes.Any())
+            if (!nodes.Any())
             {
                 return new ErrorDataResult<object>("Поток не содержит узлов", HttpStatusCode.BadRequest);
             }
