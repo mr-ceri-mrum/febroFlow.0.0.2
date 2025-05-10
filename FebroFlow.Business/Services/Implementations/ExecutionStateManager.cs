@@ -53,9 +53,9 @@ public class ExecutionStateManager : IExecutionStateManager
             StartedAt = DateTime.UtcNow,
             CurrentNodeId = null,
             InputData = inputDataJson,
-            OutputData = null,
+            OutputData = "{}",
             CurrentData = inputDataJson,
-            ExecutionPath = new List<ExecutionPathItem>(),
+            ExecutionPath = "[]",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -104,12 +104,20 @@ public class ExecutionStateManager : IExecutionStateManager
         // Если текущий узел изменился, добавляем его в путь выполнения
         if (executionState.CurrentNodeId != currentNodeId)
         {
-            executionState.ExecutionPath.Add(new ExecutionPathItem
+            // Десериализуем текущий путь выполнения
+            var executionPath = JsonSerializer.Deserialize<List<ExecutionPathItem>>(
+                executionState.ExecutionPath) ?? new List<ExecutionPathItem>();
+            
+            // Добавляем новый узел в путь
+            executionPath.Add(new ExecutionPathItem
             {
                 NodeId = currentNodeId,
                 Timestamp = DateTime.UtcNow,
                 Data = dataJson
             });
+            
+            // Сериализуем обновленный путь обратно
+            executionState.ExecutionPath = JsonSerializer.Serialize(executionPath);
         }
         
         // Обновление состояния
@@ -174,10 +182,10 @@ public class ExecutionStateManager : IExecutionStateManager
         _logger.LogInformation("Получение истории выполнения для потока {FlowId}", flowId);
         
         // Получение всех состояний выполнения для указанного потока
-        var executionStates = await _executionStateDal.GetAllAsync(
-            e => e.FlowId == flowId,
-            e => e.StartedAt,
-            true);
+        var executionStates = await _executionStateDal.GetAllAsync(e => e.FlowId == flowId);
+        
+        // Сортируем по времени начала выполнения
+        executionStates = executionStates.OrderByDescending(e => e.StartedAt).ToList();
         
         _logger.LogInformation("Найдено {Count} записей истории выполнения для потока {FlowId}", executionStates.Count, flowId);
         
