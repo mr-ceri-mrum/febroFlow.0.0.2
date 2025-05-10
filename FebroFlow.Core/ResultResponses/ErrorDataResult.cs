@@ -18,7 +18,7 @@ namespace FebroFlow.Core.ResultResponses
         }
 
         // message and status code
-        public ErrorDataResult(bool message, HttpStatusCode statusCode) 
+        public ErrorDataResult(string message, HttpStatusCode statusCode) 
             : base(default!, false, message, statusCode)
         {
         }
