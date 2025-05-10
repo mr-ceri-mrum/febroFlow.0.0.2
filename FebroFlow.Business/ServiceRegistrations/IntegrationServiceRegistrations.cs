@@ -1,45 +1,37 @@
+﻿using FebroFlow.Business.Services.Integration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace FebroFlow.Business.ServiceRegistrations;
-
-public static class IntegrationServiceRegistrations
+namespace FebroFlow.Business.ServiceRegistrations
 {
-    public static IServiceCollection AddIntegrationServices
-        (this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    public static class IntegrationServiceRegistrations
     {
-        // Add HTTP client services
-        services.AddHttpClient();
-        
-        // Telegram client setup
-        services.Configure<TelegramOptions>(configuration.GetSection("Telegram"));
-        
-        // OpenAI client setup
-        services.Configure<OpenAIOptions>(configuration.GetSection("OpenAI"));
-        
-        // Pinecone setup
-        services.Configure<PineconeOptions>(configuration.GetSection("Pinecone"));
-        
-        return services;
-    }
-    
-    public class TelegramOptions
-    {
-        public string BotToken { get; set; } = string.Empty;
-        public string WebhookUrl { get; set; } = string.Empty;
-    }
-    
-    public class OpenAIOptions
-    {
-        public string ApiKey { get; set; } = string.Empty;
-        public string Organization { get; set; } = string.Empty;
-    }
-    
-    public class PineconeOptions
-    {
-        public string ApiKey { get; set; } = string.Empty;
-        public string Environment { get; set; } = string.Empty;
-        public string ProjectId { get; set; } = string.Empty;
+        public static IServiceCollection AddIntegrationServices(
+            this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+        {
+            // Register Telegram integration services
+            services.AddScoped<ITelegramService, TelegramService>();
+            
+            // Register OpenAI integration services
+            services.AddScoped<IOpenAIService, OpenAIService>();
+            
+            // Register Azure OpenAI integration services
+            services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
+            
+            // Register Vector Database integration services
+            services.AddScoped<IVectorDatabaseService, VectorDatabaseService>();
+            
+            // Register Webhook integration services
+            services.AddScoped<IWebhookService, WebhookService>();
+            
+            // Register Caching integration services
+            services.AddScoped<ICachingService, CachingService>();
+
+            // Register Pinecone integration services
+            services.AddScoped<IPineconeService, PineconeService>();
+            
+            return services;
+        }
     }
 }
