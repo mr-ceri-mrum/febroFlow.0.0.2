@@ -66,10 +66,7 @@ public interface IPineconeService
 
 public class PineconeService(OpenAIClient openAiClient, IConfiguration configuration) : IPineconeService
 {
-    private const string endpoint = "https://api.openai.com/v1/embeddings";
-    private const string model = "";
-    private const string apiKey = ""; // <-- вставьте ваш ключ
-
+   
     
     public Task<bool> UpsertVectorAsync(string id, float[] vector, Dictionary<string, object> metadata, string nameSpace = "")
     {
