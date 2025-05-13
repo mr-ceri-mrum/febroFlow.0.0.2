@@ -83,7 +83,7 @@ public class PineconeService(OpenAIClient openAiClient, IConfiguration configura
         // тут будет url динасическим
         var url = $"https://royalflauwers2-c3yzq0e.svc.aped-4627-b74a.pinecone.io"; // замените на ваш endpoint
         using var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("Api-Key", "pcsk_5oHWE8_M23LHLy2z4cosTBkAwjzUMkD6N2M56uocTobTvbqEqfV3iV6fTQRtgHAzPnAfCV"); // подставь свой API-ключ
+        httpClient.DefaultRequestHeaders.Add("Api-Key", ""); // подставь свой API-ключ
         var requestBody = new
         {
             vector,
