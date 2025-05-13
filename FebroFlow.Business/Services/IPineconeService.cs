@@ -68,7 +68,7 @@ public class PineconeService(OpenAIClient openAiClient, IConfiguration configura
 {
     private const string endpoint = "https://api.openai.com/v1/embeddings";
     private const string model = "text-embedding-3-small";
-    private const string apiKey = "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"; // <-- вставьте ваш ключ
+    private const string apiKey = ""; // <-- вставьте ваш ключ
 
     
     public Task<bool> UpsertVectorAsync(string id, float[] vector, Dictionary<string, object> metadata, string nameSpace = "")
