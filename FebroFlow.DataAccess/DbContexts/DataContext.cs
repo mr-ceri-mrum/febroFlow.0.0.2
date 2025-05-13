@@ -19,34 +19,6 @@ namespace FebroFlow.DataAccess.DbContexts
         public DbSet<Credential> Credentials { get; set; }
         public DbSet<ChatMemory> ChatMemories { get; set; }
         
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            
-            // Configure relationships
-            modelBuilder.Entity<Node>()
-                .HasOne(n => n.Flow)
-                .WithMany(f => f.Nodes)
-                .HasForeignKey(n => n.FlowId)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            modelBuilder.Entity<Connection>()
-                .HasOne(c => c.Flow)
-                .WithMany(f => f.Connections)
-                .HasForeignKey(c => c.FlowId)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            modelBuilder.Entity<Connection>()
-                .HasOne(c => c.SourceNode)
-                .WithMany()
-                .HasForeignKey(c => c.SourceNodeId)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            modelBuilder.Entity<Connection>()
-                .HasOne(c => c.TargetNode)
-                .WithMany()
-                .HasForeignKey(c => c.TargetNodeId)
-                .OnDelete(DeleteBehavior.Cascade);
-        }
+        
     }
 }

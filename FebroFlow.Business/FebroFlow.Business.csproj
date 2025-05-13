@@ -20,12 +20,19 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="OpenAI" Version="2.1.0" />
+    <PackageReference Include="Pinecone.NET" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FebroFlow.Core\FebroFlow.Core.csproj" />
     <ProjectReference Include="..\FebroFlow.Data\FebroFlow.Data.csproj" />
     <ProjectReference Include="..\FebroFlow.DataAccess\FebroFlow.DataAccess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="UseCase\Webhook\" />
+    <Folder Include="Validator\Flow\" />
   </ItemGroup>
 
 </Project>

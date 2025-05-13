@@ -9,7 +9,7 @@ namespace FebroFlow.Business.Services;
 /// <summary>
 /// Interface for Azure OpenAI Service integration
 /// </summary>
-public interface IAzureOpenAIService
+public interface IAzureOpenAiService
 {
     /// <summary>
     /// Generate embeddings for text using Azure OpenAI
@@ -70,7 +70,7 @@ public class ChatMessage
 /// <summary>
 /// Implementation of Azure OpenAI Service
 /// </summary>
-public class AzureOpenAIService : IAzureOpenAIService
+public class AzureOpenAIService : IAzureOpenAiService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;

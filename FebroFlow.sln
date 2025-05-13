@@ -2,8 +2,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FebroFlow.API", "FebroFlow.API\FebroFlow.API.csproj", "{E5F97645-6D34-4429-A8D6-E2A806821C1D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FebroFlow.Business", "FebroFlow.Business\FebroFlow.Business.csproj", "{D55F0211-9CBC-499F-90A5-588625462C33}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FebroFlow.Data", "FebroFlow.Data\FebroFlow.Data.csproj", "{631712CE-7A64-49AA-A76D-617785DAF7F8}"
@@ -12,16 +10,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FebroFlow.Core", "FebroFlow
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FebroFlow.DataAccess", "FebroFlow.DataAccess\FebroFlow.DataAccess.csproj", "{B8DEAE29-A592-4C65-A026-2EF2A240250C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "febroFlow.APIV2", "febroFlow.APIV2\febroFlow.APIV2.csproj", "{E816301B-B4F7-4BBC-B97B-60303ED74A10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E5F97645-6D34-4429-A8D6-E2A806821C1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E5F97645-6D34-4429-A8D6-E2A806821C1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E5F97645-6D34-4429-A8D6-E2A806821C1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E5F97645-6D34-4429-A8D6-E2A806821C1D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D55F0211-9CBC-499F-90A5-588625462C33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D55F0211-9CBC-499F-90A5-588625462C33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D55F0211-9CBC-499F-90A5-588625462C33}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -38,5 +34,9 @@ Global
 		{B8DEAE29-A592-4C65-A026-2EF2A240250C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8DEAE29-A592-4C65-A026-2EF2A240250C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8DEAE29-A592-4C65-A026-2EF2A240250C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E816301B-B4F7-4BBC-B97B-60303ED74A10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E816301B-B4F7-4BBC-B97B-60303ED74A10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E816301B-B4F7-4BBC-B97B-60303ED74A10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E816301B-B4F7-4BBC-B97B-60303ED74A10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using FlowEngine = FebroFlow.Business.Services.Implementations.FlowEngine;
 
 namespace FebroFlow.Business.ServiceRegistrations;
 
@@ -31,12 +32,8 @@ public static class CoreServiceRegistrations
         services.AddScoped<IMessagesRepository, MessagesRepository>();
         services.AddScoped<IFlowEngine, FlowEngine>();
         services.AddScoped<INodeFactory, NodeFactory>();
-        services.AddScoped<IConnectionManager, ConnectionManager>();
         services.AddScoped<IExecutionStateManager, ExecutionStateManager>();
-        services.AddScoped<ITelegramService, TelegramService>();
-        services.AddScoped<IOpenAIService, OpenAIService>();
         services.AddScoped<IPineconeService, PineconeService>();
-        
         // CORS setup
         services.AddCors(options =>
         {

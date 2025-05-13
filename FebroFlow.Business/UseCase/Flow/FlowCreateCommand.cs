@@ -19,9 +19,9 @@ public class FlowCreateCommand : IRequest<IDataResult<object>>
     /// <summary>
     /// DTO для создания потока
     /// </summary>
-    public FlowCreateDto FlowDto { get; }
+    public CreateFlowRequest FlowDto { get; }
 
-    public FlowCreateCommand(FlowCreateDto flowDto)
+    public FlowCreateCommand(CreateFlowRequest flowDto)
     {
         FlowDto = flowDto;
     }
@@ -30,42 +30,25 @@ public class FlowCreateCommand : IRequest<IDataResult<object>>
 /// <summary>
 /// Обработчик команды создания потока
 /// </summary>
-public class FlowCreateCommandHandler : IRequestHandler<FlowCreateCommand, IDataResult<object>>
+public class FlowCreateCommandHandler(
+    IFlowDal flowDal,
+    IAuthInformationRepository authInformationRepository,
+    IMessagesRepository messagesRepository,
+    IMapper mapper)
+    : IRequestHandler<FlowCreateCommand, IDataResult<object>>
 {
-    private readonly IFlowDal _flowDal;
-    private readonly IAuthInformationRepository _authInformationRepository;
-    private readonly IMessagesRepository _messagesRepository;
-    private readonly IMapper _mapper;
-    
-    public FlowCreateCommandHandler(
-        IFlowDal flowDal,
-        IAuthInformationRepository authInformationRepository,
-        IMessagesRepository messagesRepository,
-        IMapper mapper)
-    {
-        _flowDal = flowDal;
-        _authInformationRepository = authInformationRepository;
-        _messagesRepository = messagesRepository;
-        _mapper = mapper;
-    }
-
     public async Task<IDataResult<object>> Handle(FlowCreateCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var userId = _authInformationRepository.GetUserId();
+            var userId = authInformationRepository.GetUserId(); if (userId == Guid.Empty) return new ErrorDataResult<object>(messagesRepository.AccessDenied("User"), HttpStatusCode.Forbidden);
             
-            if (userId == Guid.Empty)
-            {
-                return new ErrorDataResult<object>(_messagesRepository.AccessDenied("User"), HttpStatusCode.Forbidden);
-            }
+            var flow = mapper.Map<DataAccess.DbModels.Flow>(request.FlowDto);
+            if (userId != null) flow.CreatorId = userId.Value;
             
-            var flow = _mapper.Map<DataAccess.DbModels.Flow>(request.FlowDto);
-            flow.CreatorId = userId.Id;
+            await flowDal.AddAsync(flow);
             
-            await _flowDal.AddAsync(flow);
-            
-            return new SuccessDataResult<object>(flow, _messagesRepository.Created("Flow"));
+            return new SuccessDataResult<object>(flow, messagesRepository.Created("Flow"));
         }
         catch (Exception ex)
         {

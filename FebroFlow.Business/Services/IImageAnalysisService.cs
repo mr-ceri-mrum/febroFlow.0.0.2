@@ -262,7 +262,7 @@ public class AzureImageAnalysisService : IImageAnalysisService
             {
                 var detectedObject = new DetectedObject
                 {
-                    Name = obj.object?.ToString() ?? "Unknown",
+                    Name =  "Unknown",
                     Confidence = (float)obj.confidence,
                     Box = new BoundingBox
                     {

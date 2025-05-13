@@ -183,4 +183,14 @@ public class FlowEngine : IFlowEngine
                 new { cancelled = true });
         }
     }
+
+    public Task<string> ExecuteFlowAsync(Guid flowId, string promt, string? chatId = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> ExecuteFlowAsyncV2(Guid flowId, string promt, string? chatId)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -130,3 +130,10 @@ public class FlowExecuteCommandHandler : IRequestHandler<FlowExecuteCommand, IDa
         }
     }
 }
+
+public class FlowExecutionResultDto
+{
+    public Guid ExecutionId { get; set; }
+    public ExecutionStatus Status { get; set; }
+    public DateTime StartTime { get; set; }
+};

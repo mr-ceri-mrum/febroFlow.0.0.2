@@ -60,7 +60,7 @@ public class ConnectionUpdateCommandHandler : IRequestHandler<ConnectionUpdateCo
             
             if (validationResult is false)
             {
-                return new ErrorDataResult<object>(validationResult, HttpStatusCode.BadRequest);
+                return new ErrorDataResult<object>("asd", HttpStatusCode.BadRequest);
             }
         }
         

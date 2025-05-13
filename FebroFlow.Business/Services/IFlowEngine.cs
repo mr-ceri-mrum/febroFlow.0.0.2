@@ -28,4 +28,36 @@ public interface IFlowEngine
     /// </summary>
     /// <param name="executionId">ID of the execution to cancel</param>
     Task CancelFlowExecutionAsync(Guid executionId);
+    
+    Task<string> ExecuteFlowAsync(Guid flowId, string promt, string? chatId = null);
+    Task<string> ExecuteFlowAsyncV2(Guid flowId, string promt, string? chatId);
+}
+
+public class FlowEngine: IFlowEngine
+{
+    public Task<Guid> ExecuteFlowAsync(Guid flowId, string contextId, object inputData)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<ExecutionState> GetFlowExecutionStateAsync(Guid executionId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task CancelFlowExecutionAsync(Guid executionId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<string> ExecuteFlowAsync(Guid flowId, string promt, string? chatId)
+    {
+        throw new NotImplementedException();
+
+    }
+
+    public Task<string> ExecuteFlowAsyncV2(Guid flowId, string promt, string chatId)
+    {
+        throw new NotImplementedException();
+    }
 }

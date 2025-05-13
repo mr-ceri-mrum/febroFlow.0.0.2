@@ -19,7 +19,7 @@ public class NodeGetTypesCommandHandler : IRequestHandler<NodeGetTypesCommand, I
     
     public async Task<IDataResult<object>> Handle(NodeGetTypesCommand request, CancellationToken cancellationToken)
     {
-        var result = await _nodeFactory.GetAvailableNodeTypesAsync();
-        return result;
+        //var result = await _nodeFactory.GetAvailableNodeTypesAsync();
+        return null;
     }
 }
