@@ -66,7 +66,10 @@ public interface IPineconeService
 
 public class PineconeService(OpenAIClient openAiClient, IConfiguration configuration) : IPineconeService
 {
-   
+    private const string endpoint = "";
+    private const string model = "";
+    private const string apiKey = ""; // <-- вставьте ваш ключ
+
     
     public Task<bool> UpsertVectorAsync(string id, float[] vector, Dictionary<string, object> metadata, string nameSpace = "")
     {
@@ -81,7 +84,7 @@ public class PineconeService(OpenAIClient openAiClient, IConfiguration configura
     public async Task<List<PineconeSearchResult>> QueryAsync(float[] vector, int topK = 10, string index = "")
     {
         // тут будет url динасическим
-        var url = $"https://royalflauwers2-c3yzq0e.svc.aped-4627-b74a.pinecone.io"; // замените на ваш endpoint
+        var url = $""; // замените на ваш endpoint
         using var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Add("Api-Key", ""); // подставь свой API-ключ
         var requestBody = new

@@ -34,6 +34,7 @@ public static class CoreServiceRegistrations
         services.AddScoped<INodeFactory, NodeFactory>();
         services.AddScoped<IExecutionStateManager, ExecutionStateManager>();
         services.AddScoped<IPineconeService, PineconeService>();
+        services.AddScoped<IOpenAiService, OpenAiService>();
         // CORS setup
         services.AddCors(options =>
         {
