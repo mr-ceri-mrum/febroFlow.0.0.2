@@ -1,12 +1,12 @@
 using FebroFlow.Business.Services;
-using FebroFlow.Business.Services.Implementations;
 using FebroFlow.Core.Responses;
 using FebroFlow.DataAccess.DbContexts;
+using febroFlow.DataAccess.DataAccess;
+using febroFlow.DataAccess.DataAccess.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using FlowEngine = FebroFlow.Business.Services.Implementations.FlowEngine;
 
 namespace FebroFlow.Business.ServiceRegistrations;
 
@@ -15,27 +15,59 @@ public static class CoreServiceRegistrations
     public static IServiceCollection AddCoreServices
         (this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
-        // DbContext
-        var connectionName = "DefaultConnection";
+        #region DbContexts
+        var conn = "DefaultConnection";
         services.AddDbContext<DataContext>(options =>
         {
             options.UseNpgsql(
-                configuration.GetConnectionString(connectionName),
+                configuration.GetConnectionString(conn),
                 b => b.MigrationsAssembly("FebroFlow.API")
             );
         });
-        
+        #endregion
+
         services.AddControllers();
         services.AddEndpointsApiExplorer();
+        services.AddAuthorization();
+        services.AddHttpContextAccessor();
+
+        // Register message repository
+        services.AddTransient<IMessagesRepository, MessagesRepository>();
+
+        // Register HTTP client factory
+        services.AddHttpClient();
         
-        // Register core services
-        services.AddScoped<IMessagesRepository, MessagesRepository>();
-        services.AddScoped<IFlowEngine, FlowEngine>();
-        services.AddScoped<INodeFactory, NodeFactory>();
-        services.AddScoped<IExecutionStateManager, ExecutionStateManager>();
+        // Register memory cache
+        services.AddMemoryCache();
+
+        // Register AuthInformationRepository
+        services.AddScoped<IAuthInformationRepository, AuthInformationRepository>();
+
+        // Register ConnectionManager
+
+        // Register OpenAI service
+       
+
+        // Register Pinecone service
         services.AddScoped<IPineconeService, PineconeService>();
-        services.AddScoped<IOpenAiService, OpenAiService>();
-        // CORS setup
+
+        // Register Telegram service
+       
+
+        // Register Flow services
+       
+        // Register VectorDatabaseService
+       
+
+        // Register WebhookService
+       
+
+        // Register ImageAnalysisService
+
+        // Register AzureOpenAIService 
+      
+
+        #region Cors
         services.AddCors(options =>
         {
             options.AddPolicy(name: configuration.GetSection("CorsLabel").Value!,
@@ -50,7 +82,8 @@ public static class CoreServiceRegistrations
                     builder.Build();
                 });
         });
-        
+        #endregion
+
         return services;
     }
 }

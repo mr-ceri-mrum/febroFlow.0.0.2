@@ -15,7 +15,7 @@ namespace FebroFlow.Business.ServiceRegistrations
             // Register OpenAI integration services
             
             // Register Azure OpenAI integration services
-            services.AddScoped<IAzureOpenAiService, AzureOpenAIService>();
+           
             
             // Register Vector Database integration services
             
@@ -23,7 +23,7 @@ namespace FebroFlow.Business.ServiceRegistrations
             
             
             // Register Caching integration services
-            services.AddScoped<ICachingService, CachingService>();
+            
 
             // Register Pinecone integration services
            
