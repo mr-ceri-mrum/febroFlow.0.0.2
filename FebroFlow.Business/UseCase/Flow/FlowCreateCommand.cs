@@ -42,14 +42,14 @@ public class FlowCreateCommandHandler(
         try
         {
             var userId = authInformationRepository.GetUserId(); if (userId == Guid.Empty) return new ErrorDataResult<object>(messagesRepository.AccessDenied("User"), HttpStatusCode.Forbidden);
-            
+            userId = Guid.NewGuid();
             var flow = mapper.Map<DataAccess.DbModels.Flow>(request.FlowDto);
             if (userId != null) flow.CreatorId = userId.Value;
             
             await flowDal.AddAsync(flow);
             
             return new SuccessDataResult<object>(flow, messagesRepository.Created("Flow"));
-        }
+        }  
         catch (Exception ex)
         {
             return new ErrorDataResult<object>(ex.Message, HttpStatusCode.InternalServerError);

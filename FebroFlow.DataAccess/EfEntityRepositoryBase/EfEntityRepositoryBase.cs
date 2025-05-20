@@ -118,10 +118,10 @@ public class EfEntityRepositoryBase<TEntity, TContext> : IEntityRepository<TEnti
         params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = _context.Set<TEntity>().Where(x => !x.IsDeleted);
-
+            
         // Apply all includes
         query = includes.Aggregate(query, (current, include) => current.Include(include));
-
+        
         return await query.FirstOrDefaultAsync(filter);
     }
 

@@ -1,12 +1,11 @@
 using FebroFlow.Business.Services;
 using FebroFlow.Core.Responses;
 using FebroFlow.DataAccess.DbContexts;
-using febroFlow.DataAccess.DataAccess;
-using febroFlow.DataAccess.DataAccess.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
 
 namespace FebroFlow.Business.ServiceRegistrations;
 
@@ -21,16 +20,15 @@ public static class CoreServiceRegistrations
         {
             options.UseNpgsql(
                 configuration.GetConnectionString(conn),
-                b => b.MigrationsAssembly("FebroFlow.API")
-            );
+                 b => b.MigrationsAssembly("FebroFlow.DataAccess"));
         });
         #endregion
 
+       
         services.AddControllers();
         services.AddEndpointsApiExplorer();
         services.AddAuthorization();
         services.AddHttpContextAccessor();
-
         // Register message repository
         services.AddTransient<IMessagesRepository, MessagesRepository>();
 
@@ -50,7 +48,8 @@ public static class CoreServiceRegistrations
 
         // Register Pinecone service
         services.AddScoped<IPineconeService, PineconeService>();
-
+       
+        
         // Register Telegram service
        
 
@@ -84,6 +83,7 @@ public static class CoreServiceRegistrations
         });
         #endregion
 
+        services.AddScoped<IOpenAiService, OpenAiService>();
         return services;
     }
 }

@@ -19,6 +19,7 @@ public static class AutoMapServiceRegistrations
             config.CreateMap<FlowCreateDto, Flow>();
             config.CreateMap<FlowUpdateDto, Flow>();
             config.CreateMap<Flow, FlowDto>();
+            config.CreateMap<CreateFlowRequest, Flow>();
             #endregion
             
             #region Nodes

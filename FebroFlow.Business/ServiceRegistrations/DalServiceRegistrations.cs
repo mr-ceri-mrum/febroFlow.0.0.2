@@ -21,7 +21,7 @@ public static class DalServiceRegistrations
         services.AddScoped<IExecutionStateDal, ExecutionStateDal>();
         services.AddScoped<ICredentialDal, CredentialDal>();
         services.AddScoped<IChatMemoryDal, ChatMemoryDal>();
-        
+        services.AddScoped<IVectorDal, VectorDal>();
         return services;
     }
 }

@@ -18,7 +18,7 @@ namespace FebroFlow.DataAccess.DbContexts
         public DbSet<ExecutionState> ExecutionStates { get; set; }
         public DbSet<Credential> Credentials { get; set; }
         public DbSet<ChatMemory> ChatMemories { get; set; }
-        
+        public DbSet<Vector> Vectors { get; set; }
         
     }
 }

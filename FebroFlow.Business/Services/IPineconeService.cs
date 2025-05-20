@@ -1,10 +1,11 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using FebroFlow.Core.Responses;
 using Microsoft.Extensions.Configuration;
 using OpenAI;
-using OpenAI.Embeddings;
+using Pinecone;
 
 namespace FebroFlow.Business.Services;
 
@@ -31,16 +32,15 @@ public interface IPineconeService
     /// <param name="nameSpace">Namespace для векторов</param>
     /// <returns>Результат операции</returns>
     Task<bool> UpsertVectorsAsync(Dictionary<string, float[]> vectors, Dictionary<string, Dictionary<string, object>> metadata, string nameSpace = "");
-    
+
     /// <summary>
     /// Поиск ближайших векторов
     /// </summary>
     /// <param name="vector">Вектор для поиска</param>
+    /// <param name="collectionName"></param>
     /// <param name="topK">Количество ближайших векторов для возврата</param>
-    /// <param name="nameSpace">Namespace для поиска</param>
-    /// <param name="filter">Фильтр для поиска</param>
     /// <returns>Результаты поиска с метаданными</returns>
-    Task<List<PineconeSearchResult>> QueryAsync(float[] vector, int topK = 10, string index = "");
+    Task<JsonElement> QueryAsync(float[] vector, string collectionName,int topK = 10);
     
     /// <summary>
     /// Удаление вектора из базы данных
@@ -58,19 +58,18 @@ public interface IPineconeService
     /// <returns>Результат операции</returns>
     Task<bool> DeleteVectorsAsync(Dictionary<string, object> filter, string nameSpace = "");
 
-    Task<IResult> CreateIndexAsync(string indexName, int dimension, string metric);
+    Task CreateIndexAsync(string indexName);
     Task<object> ListIndexesAsync();
     
     Task<List<float>> GenerateEmbeddingAsync(string text);
 }
 
-public class PineconeService(OpenAIClient openAiClient, IConfiguration configuration) : IPineconeService
+public class PineconeService(OpenAIClient openAiClient, IConfiguration configuration, HttpClient httpClient) : IPineconeService
 {
-    private const string endpoint = "";
-    private const string model = "";
-    private const string apiKey = ""; // <-- вставьте ваш ключ
-
-    
+    private readonly PineconeClient _pineconeClient = new(configuration.GetValue<string>("Pinecone:ApiKey") ?? throw new InvalidOperationException());
+    private const string endpoint = "https://api.openai.com/v1/embeddings";
+    private const string model = "text-embedding-3-small";
+    private readonly string _apiKeyOpenAi = configuration.GetValue<string>("OpenAI:ApiKey") ?? throw new InvalidOperationException();
     public Task<bool> UpsertVectorAsync(string id, float[] vector, Dictionary<string, object> metadata, string nameSpace = "")
     {
         throw new NotImplementedException();
@@ -81,35 +80,18 @@ public class PineconeService(OpenAIClient openAiClient, IConfiguration configura
         throw new NotImplementedException();
     }
 
-    public async Task<List<PineconeSearchResult>> QueryAsync(float[] vector, int topK = 10, string index = "")
+    public Task<JsonElement> QueryAsync(float[] vector, string collectionName, int topK = 10)
     {
-        // тут будет url динасическим
-        var url = $""; // замените на ваш endpoint
-        using var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("Api-Key", ""); // подставь свой API-ключ
-        var requestBody = new
-        {
-            vector,
-            topK,
-            includeMetadata = true,
-            includeValues = false
-        };
-        
-        var content = new StringContent(
-            JsonSerializer.Serialize(requestBody),
-            Encoding.UTF8,
-            "application/json"
-        );
-        var response = await httpClient.PostAsync(url, content);
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Pinecone query failed: {error}");
-        }
-        var responseString = await response.Content.ReadAsStringAsync();
-        
-        return JsonSerializer.Deserialize<List<PineconeSearchResult>>(responseString) ?? throw new InvalidOperationException();
+        throw new NotImplementedException();
     }
+
+    public async Task<JsonElement> QueryAsync(float[] vector, string collectionName,  int topK = 10, string collectionNameSpace = "") 
+    {
+        var json = JsonSerializer.Serialize(collectionName);
+        var document = JsonDocument.Parse(json);
+        return document.RootElement;
+    }
+ 
 
     public Task<bool> DeleteVectorAsync(string id, string nameSpace = "")
     {
@@ -121,9 +103,28 @@ public class PineconeService(OpenAIClient openAiClient, IConfiguration configura
         throw new NotImplementedException();
     }
 
-    public Task<IResult> CreateIndexAsync(string indexName, int dimension, string metric)
+    public async Task CreateIndexAsync(string indexName)
     {
-        throw new NotImplementedException();
+        await _pineconeClient.CreateIndexAsync(new CreateIndexRequest
+        {
+            Name = indexName,
+            VectorType = VectorType.Dense,
+            Dimension = 1536,
+            Metric = CreateIndexRequestMetric.Cosine,
+            Spec = new ServerlessIndexSpec
+            {
+                Serverless = new ServerlessSpec
+                {
+                    Cloud = ServerlessSpecCloud.Aws,
+                    Region = "us-east-1"
+                }
+            },
+            DeletionProtection = DeletionProtection.Disabled,
+            Tags = new Dictionary<string, string> 
+            {  
+                { "environment", "development" }
+            }
+        });
     }
 
     public Task<object> ListIndexesAsync()
@@ -133,14 +134,19 @@ public class PineconeService(OpenAIClient openAiClient, IConfiguration configura
 
     public async Task<List<float>> GenerateEmbeddingAsync(string text)
     {
+        string endpoint = "https://api.openai.com/v1/embeddings";
+        
         using var client = new HttpClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKeyOpenAi);
+        
         var requestBody = new
         {
-            input = text, model
+            input = text,
+            model = "text-embedding-3-small"
         };
         var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
         var response = await client.PostAsync(endpoint, content);
+        
         response.EnsureSuccessStatusCode();
         
         var responseContent = await response.Content.ReadAsStringAsync();
@@ -152,12 +158,12 @@ public class PineconeService(OpenAIClient openAiClient, IConfiguration configura
         
         var result = new float[embeddingArray.GetArrayLength()];
         var index = 0;
-
+        
         foreach (var value in embeddingArray.EnumerateArray())
         {
             result[index++] = value.GetSingle();
         }
-
+        
         return result.ToList();
     }
 }
@@ -182,3 +188,5 @@ public class PineconeSearchResult
     /// </summary>
     public Dictionary<string, object> Metadata { get; set; }
 }
+
+

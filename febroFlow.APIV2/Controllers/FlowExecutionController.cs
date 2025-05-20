@@ -13,14 +13,14 @@ namespace febroFlow.APIV2.Controllers;
 [ApiController]
 public class FlowExecutionController(IMediator mediator) : BaseController
 {
-    [HttpGet("CreateFlowExecution")]
-    public async Task<IActionResult> CreateFlowExecution([FromQuery] CreateFlowRequest form)
+    [HttpPost("CreateFlowExecution")]
+    public async Task<IActionResult> CreateFlowExecution([FromForm] CreateFlowRequest form)
     {
         var result = await mediator.Send(new FlowCreateCommand(form)); 
         return Return(result);
     }
     
-    [HttpGet("TestFlow")]
+    [HttpPost("TestFlow")]
     public async Task<IActionResult> TestFlow([FromQuery] TestFlowRequest form)
     {
         var result = await mediator.Send(new FlowTestCommand(form)); 

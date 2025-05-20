@@ -5,7 +5,6 @@ using FebroFlow.Core.ResultResponses;
 using FebroFlow.Data.Dtos.Flow;
 using febroFlow.DataAccess.DataAccess;
 using MediatR;
-using Pinecone;
 
 namespace FebroFlow.Business.UseCase.Flow;
 
@@ -25,25 +24,22 @@ public class FlowTestCommandHandler(IFlowDal flowDal, IMessagesRepository messag
         var flow = await flowDal.GetAsync(x => x.Id == request.Form.Id || !x.IsActive);
         if(flow == null || string.IsNullOrWhiteSpace(request.Form.Text)) return new ErrorDataResult<object>("Flow not found", HttpStatusCode.NotFound);
         
-        var embedding = await pineconeService.GenerateEmbeddingAsync(request.Form.Text); 
-        var relatedChunks = await pineconeService.QueryAsync(embedding.ToArray(), topK: 20); 
+        QdrantServiceHelper qdrantServiceHelper = new QdrantServiceHelper(new HttpClient());
+        var embedding = await pineconeService.GenerateEmbeddingAsync(request.Form.Text);
         
-        var context = string.Join("\n", relatedChunks); 
-        var prompt = $"""
-                      Используя следующий контекст, ответь на вопрос:
-
-                      Контекст:
-                      {context}
-
-                      Вопрос:
-                      {request.Form.Text}
-
-                      Ответ:
-                      """;
+        var relatedChunks = await qdrantServiceHelper.SearchAsync(request.Form.collectionName, embedding, cancellationToken: cancellationToken);
         
-        var completion = await openAiService.GetChatCompletionAsync(prompt);
+        var context = string.Join("\n\n", relatedChunks
+            .Where(chunk => chunk.Payload != null)
+            .SelectMany(chunk => chunk.Payload.Values)
+            .Select(val => val?.ToString())
+            .Where(val => !string.IsNullOrWhiteSpace(val)));
         
-        
-        return new SuccessDataResult<object>(completion, "Vector stored, queried and answered.");
+        return new SuccessDataResult<object>
+        (await openAiService.SendPromptAsync(flow.SysteamPromt, context, request.Form.Text), 
+            "Vector stored, queried and answered.");
     }
+
+    
+
 } 

@@ -16,6 +16,7 @@ public static class ServiceRegistration
         services.AddDalServices(configuration, environment);
         services.AddIntegrationServices(configuration, environment);
         
+        
         return services;
     }
 }

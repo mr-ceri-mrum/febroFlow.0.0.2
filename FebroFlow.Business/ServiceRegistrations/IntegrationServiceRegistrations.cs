@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+
 namespace FebroFlow.Business.ServiceRegistrations
 {
     public static class IntegrationServiceRegistrations
@@ -27,6 +28,7 @@ namespace FebroFlow.Business.ServiceRegistrations
 
             // Register Pinecone integration services
            
+            
             
             return services;
         }
